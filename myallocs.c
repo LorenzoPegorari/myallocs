@@ -6,6 +6,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 // POSIX standard
 #include <pthread.h>
@@ -189,6 +190,33 @@ void myfree(void *ptr) {
     header->s.is_free = true;
     if (pthread_mutex_unlock(&global_mymallocs_mutex) != 0)
         abort();
+}
+
+
+void *mycalloc(size_t nelem, size_t elsize) {
+    size_t size;
+    void  *block;
+
+    // If given `nelem` or `elsize` is 0, return NULL. `errno` NOT set.
+    if (nelem == 0 || elsize == 0)
+        return NULL;
+
+    /* Calculate `size`, check if overflow, and then allocate it with
+       `mymalloc()`. Notice that we just have to check for multiplication
+       overflow, and not worry about the `size` still being too big, as that
+       will be handled by `mymalloc()`. */
+    size = nelem * elsize;
+	if (size / nelem != elsize) {
+        errno = EOVERFLOW;
+        return NULL;
+    }
+    block = mymalloc(size);
+    if (block == NULL)
+        return NULL;
+
+    // Set all `block` bytes to 0. `memset()` cannot fail.
+    (void)memset(block, 0, size);
+    return block;
 }
 
 

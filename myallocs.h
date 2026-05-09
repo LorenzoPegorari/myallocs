@@ -26,6 +26,21 @@ void *mymalloc(size_t size);
 void myfree(void *ptr);
 
 
+/**
+ * Allocate `nelem` elements of `elsize` bytes each, all initialized to 0.
+ * Return pointer to the allocated memory, NULL if the given `nelem` or
+ * `elsize` is 0, and NULL (with `errno` set to error value) if an error
+ * occurred.
+ *   - `errno == ENOMEM` ----> if no more available memory
+ *   - `errno == EAGAIN` ----> if memory available for allocation to this
+ *                             process is temporarily insufficient
+ *   - `errno == EOVERFLOW` -> if `nelem * elsize` causes a multiplication
+ *                             overflow, or if it is bigger than (SIZE_MAX / 2)
+ *                             minus the space for the memory block header
+ */
+void *mycalloc(size_t nelem, size_t elsize);
+
+
 #ifdef MYALLOCS_DEBUG
 /**
  * TODO.
