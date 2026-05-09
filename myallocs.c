@@ -42,19 +42,14 @@
 
 
 /*
- * The idea is to add to every allocated memory block an header, that contains
- * the size of the block, and a flag that indicates if the block is marked as
- * free.
+ * The idea is to add to every allocated memory block an header that contains:
+ *   - the size of the block
+ *   - a flag that indicates if the block is marked as free
+ *   - a pointer to the next memory block header (to create a linked list)
  *
  * The header is kept completely hidden from the caller.
  *
- * linked list TODO
- *
- * Align to 16
- *
- * head and tail
- *
- * pthread lock
+ * The header is wrapped inside a `union`, forcing it to be aligned to `ALIGN`.
  */
 
 
