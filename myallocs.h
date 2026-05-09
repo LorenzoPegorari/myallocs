@@ -57,13 +57,13 @@ void *mycalloc(size_t nelem, size_t elsize);
 
 #ifdef MYALLOCS_DEBUG
 /**
- * TODO.
+ * Get amount of allocated memory.
  */
 size_t get_total_allocated(void);
 
 
 /**
- * TODO.
+ * Get amount of memory that can actually be used by the caller.
  */
 size_t get_total_used(void);
 #endif
