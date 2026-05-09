@@ -100,7 +100,7 @@ void *mymalloc(size_t size) {
 
     /* If we don't have a free and big enough block of memory already
        allocated, let's extend the heap by allocating it using the syscall
-       `sbrk` (NOTE: `sbrk` is probably the simplest, but not the best choice
+       `sbrk` (NOTE: `sbrk()` is probably the simplest, but not the best choice
        to create a modern memory allocator!). */
     total_size = sizeof(header_t) + size;
     block = sbrk((intptr_t)total_size);
@@ -139,11 +139,22 @@ void myfree(void *ptr) {
     if (ptr == NULL)
         return;
 
-    // Take the given memory block `ptr`, and obtain its `header`.
+    /* `sbrk(0)` returns the current location of the program break. It cannot
+       fail.
+       We use the program break to check if the block of memory to free is the
+       last memory block. If so, it can be safely deallocated using `sbrk()`.
+       Else, we simply mark that memory block as free. */
+    /* NOTE: its not possible to simply move back in the linked list of memory
+       blocks and deallocate all the blocks that are marked as free that we
+       encounter before the first not free block without checking, because we
+       cannot know for certain that a third-party memory allocator didn't
+       allocate memory in between the blocks in the linked list, meaning that
+       we can't assume that the blocks are contiguous!
+       We would have to manually check for each block if it is at the program
+       break! This could be a possible future improvement!. */
     if (pthread_mutex_lock(&global_mymallocs_mutex) != 0)
         abort();
     header = (header_t *)ptr - 1;
-
     programbreak = sbrk((intptr_t)0);
     if ((char *)ptr + header->s.size == programbreak) {
         size_t total_size;
@@ -163,8 +174,11 @@ void myfree(void *ptr) {
             }
         }
         total_size = sizeof(header_t) + header->s.size;
-        printf("%lld\n", 0 - (long long int)total_size);
-        (void)sbrk(0 - (long long int)total_size);
+        if (sbrk((intptr_t)0 - (intptr_t)total_size) == (void*)-1) {
+            // Syscall `sbrk` returned an error!
+            pthread_mutex_unlock(&global_mymallocs_mutex);
+            abort();
+        }
 #ifdef MYALLOCS_DEBUG
         total_allocated -= total_size;
 #endif
