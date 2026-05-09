@@ -80,7 +80,8 @@ void *mymalloc(size_t size) {
         return NULL;
 
     // Check if we have a free block of memory big enough. If so, return that.
-    pthread_mutex_lock(&global_mymallocs_mutex);
+    if (pthread_mutex_lock(&global_mymallocs_mutex) != 0)
+        abort();
     header = get_free_block(size);
     if (header != NULL) {
         header->s.is_free = false;
@@ -92,7 +93,8 @@ void *mymalloc(size_t size) {
        block header, return NULL. `errno` set to EOVERFLOW. */
     if (size > (SIZE_MAX / 2) - sizeof(header_t)) {
         errno = EOVERFLOW;
-        pthread_mutex_unlock(&global_mymallocs_mutex);
+        if (pthread_mutex_unlock(&global_mymallocs_mutex) != 0)
+            abort();
         return NULL;
     }
 
@@ -104,7 +106,8 @@ void *mymalloc(size_t size) {
     block = sbrk((intptr_t)total_size);
     if (block == (void*)-1) {
         // Syscall `sbrk` returned an error!
-        pthread_mutex_unlock(&global_mymallocs_mutex);
+        if (pthread_mutex_unlock(&global_mymallocs_mutex) != 0)
+            abort();
         return NULL;
     }
 #ifdef MYALLOCS_DEBUG
@@ -122,7 +125,8 @@ void *mymalloc(size_t size) {
     if (tail != NULL)
         tail->s.next = header;
     tail = header;
-    pthread_mutex_unlock(&global_mymallocs_mutex);
+    if (pthread_mutex_unlock(&global_mymallocs_mutex) != 0)
+        abort();
     return (void *)(header + 1);
 }
 
@@ -136,7 +140,8 @@ void myfree(void *ptr) {
         return;
 
     // Take the given memory block `ptr`, and obtain its `header`.
-    pthread_mutex_lock(&global_mymallocs_mutex);
+    if (pthread_mutex_lock(&global_mymallocs_mutex) != 0)
+        abort();
     header = (header_t *)ptr - 1;
 
     programbreak = sbrk((intptr_t)0);
@@ -158,15 +163,18 @@ void myfree(void *ptr) {
             }
         }
         total_size = sizeof(header_t) + header->s.size;
-        sbrk(0 - total_size);
+        printf("%lld\n", 0 - (long long int)total_size);
+        (void)sbrk(0 - (long long int)total_size);
 #ifdef MYALLOCS_DEBUG
         total_allocated -= total_size;
 #endif
-        pthread_mutex_unlock(&global_mymallocs_mutex);
+        if (pthread_mutex_unlock(&global_mymallocs_mutex) != 0)
+            abort();
         return;
     }
     header->s.is_free = true;
-    pthread_mutex_unlock(&global_mymallocs_mutex);
+    if (pthread_mutex_unlock(&global_mymallocs_mutex) != 0)
+        abort();
 }
 
 
