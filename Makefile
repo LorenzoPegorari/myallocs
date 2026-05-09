@@ -24,6 +24,12 @@ CFLAGS_DEBUG := -D MYALLOCS_DEBUG -fPIC -std=c99 -O2 -Wall -Wextra -pedantic
 CFLAGS_TEST  := -D MYALLOCS_DEBUG -std=c99 -O2 -Wall -Wextra -pedantic
 LDFLAGS_TEST := -L./$(BUILD_DIR) -lc -l$(BIN_DEBUG:lib%.so=%) -Wl,-rpath,./$(BUILD_DIR)
 
+# NOTE:
+# It is possible to add either the CFLAGS or CFLAGS_DEBUG variable the
+# following flag:
+#     "-D MYALLOCS_BEST_FIT"
+# which will force the library functions to use the "BEST FIT" policy.
+
 
 # ----------------------------------- GOALS -----------------------------------
 

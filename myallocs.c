@@ -55,10 +55,28 @@ size_t total_allocated = 0;
 
 /**
  * Check if there is an already allocated memory block that is free, and whose
- * size is bigger than the given `size`. The policy used is the "FIRST FIT".
+ * size is bigger than the given `size`. The standard policy used is the "FIRST
+ *  FIT" (but it is possible to compile the code using the "BEST FIT" policy).
  * Return the found block, or NULL if no block is free and big enough.
  */
 static header_t *get_free_block(size_t size) {
+#ifdef MYALLOCS_BEST_FIT
+    header_t *curr = head;
+    header_t *best_fit = NULL;
+
+    while (curr) {
+        if (curr->s.is_free == true) {
+            if (curr->s.size == size)
+                return curr;
+            else if (curr->s.size > size &&
+                     (best_fit == NULL || curr->s.size < best_fit->s.size))
+                best_fit = curr;
+        }
+        curr = curr->s.next;
+    }
+
+    return best_fit;
+#else
     header_t *curr = head;
 
     while (curr) {
@@ -68,6 +86,7 @@ static header_t *get_free_block(size_t size) {
     }
 
     return NULL;
+#endif
 }
 
 
