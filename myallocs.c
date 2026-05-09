@@ -193,6 +193,39 @@ void myfree(void *ptr) {
 }
 
 
+void *myrealloc(void *ptr, size_t size) {
+    header_t *header;
+    void     *ret;
+
+    // If `ptr` is NULL, `myrealloc()` shall be equivalent to 'mymalloc(size)`.
+    if (ptr == NULL) {
+        return mymalloc(size);
+    }
+
+    // If `size` is 0, and `ptr` is not NULL, the block shall be freed.
+    if (size == 0) {
+        myfree(ptr);
+        return NULL;
+    }
+
+    /* If the new `size` is less or equal to the old `header->s.size`, then
+       just return that block of memory again. */
+    header = (header_t *)ptr - 1;
+    if (header->s.size >= size)
+        return ptr;
+
+    /* If the new `size` is more than the old `header->s.size`, then use
+       `mymalloc()` to get a new block of memory, then copy the content to this
+       new memory block, and finally free the old memory block. */
+    ret = mymalloc(size);
+    if (ret != NULL) {
+        memcpy(ret, ptr, header->s.size);
+        myfree(ptr);
+    }
+    return ret;
+}
+
+
 void *mycalloc(size_t nelem, size_t elsize) {
     size_t size;
     void  *block;

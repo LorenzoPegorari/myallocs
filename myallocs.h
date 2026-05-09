@@ -27,6 +27,20 @@ void myfree(void *ptr);
 
 
 /**
+ * Re-allocate the previously allocated block in `ptr`, making the new block
+ * `size` bytes long. Free `ptr` if `size` is 0.
+ * Return pointer to the re-allocated memory, NULL if the given `ptr` or `size`
+ * is NULL, and NULL (with `errno` set to error value) if an error occurred.
+ *   - `errno == ENOMEM` ----> if no more available memory
+ *   - `errno == EAGAIN` ----> if memory available for allocation to this
+ *                             process is temporarily insufficient
+ *   - `errno == EOVERFLOW` -> if `size` is bigger than (SIZE_MAX / 2) minus
+ *                             the space for the memory block header
+ */
+void *myrealloc(void *ptr, size_t size);
+
+
+/**
  * Allocate `nelem` elements of `elsize` bytes each, all initialized to 0.
  * Return pointer to the allocated memory, NULL if the given `nelem` or
  * `elsize` is 0, and NULL (with `errno` set to error value) if an error
