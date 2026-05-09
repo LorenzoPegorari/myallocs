@@ -32,6 +32,8 @@
 #include "myallocs.h"
 
 
+/* Manipulate these macros how you like! Their effect is described in the
+   `run_memory_data_test()` function! */
 #define ALLOC_MAX       10
 #define ALLOC_BLOCK_MIN 1
 #define ALLOC_BLOCK_MAX 10000
