@@ -10,6 +10,11 @@
  * Allocate `size` bytes of memory.
  * Return pointer to the allocated memory, NULL if the given `size` is 0, and
  * NULL (with `errno` set to error value) if an error occurred.
+ *   - `errno == ENOMEM` ----> if no more available memory
+ *   - `errno == EAGAIN` ----> if memory available for allocation to this
+ *                             process is temporarily insufficient
+ *   - `errno == EOVERFLOW` -> if `size` is bigger than (SIZE_MAX / 2) minus
+ *                             the space for the memory block header
  */
 void *mymalloc(size_t size);
 

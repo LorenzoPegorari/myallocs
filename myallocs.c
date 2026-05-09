@@ -1,8 +1,10 @@
 #define _DEFAULT_SOURCE  // Feature Test Macro Requirements for glibc 2.19
 
 // C Standard Library
+#include <errno.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 // POSIX standard
@@ -84,6 +86,14 @@ void *mymalloc(size_t size) {
         header->s.is_free = false;
         pthread_mutex_unlock(&global_mymallocs_mutex);
         return (void *)(header + 1);
+    }
+
+    /* If `size` is bigger than (SIZE_MAX / 2) minus the space for the memory
+       block header, return NULL. `errno` set to EOVERFLOW. */
+    if (size > (SIZE_MAX / 2) - sizeof(header_t)) {
+        errno = EOVERFLOW;
+        pthread_mutex_unlock(&global_mymallocs_mutex);
+        return NULL;
     }
 
     /* If we don't have a free and big enough block of memory already
