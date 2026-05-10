@@ -45,7 +45,8 @@
  * The idea is to add to every allocated memory block an header that contains:
  *   - the size of the block
  *   - a flag that indicates if the block is marked as free
- *   - a pointer to the next memory block header (to create a linked list)
+ *   - a pointer to the prev memory block header (doubly-linked list)
+ *   - a pointer to the next memory block header (doubly-linked list)
  *
  * The header is kept completely hidden from the caller.
  *
@@ -59,6 +60,7 @@ union header_tag {
     struct {
         size_t            size;
         bool              is_free;
+        union header_tag *prev;
         union header_tag *next;
     } s;
     ALIGN stub;
@@ -77,7 +79,7 @@ size_t total_allocated = 0;
 /**
  * Check if there is an already allocated memory block that is free, and whose
  * size is bigger than the given `size`. The standard policy used is the "FIRST
- *  FIT" (but it is possible to compile the code using the "BEST FIT" policy).
+ * FIT" (but it is possible to compile the code using the "BEST FIT" policy).
  * Return the found block, or NULL if no block is free and big enough.
  */
 static header_t *get_free_block(size_t size) {
@@ -160,6 +162,7 @@ void *mymalloc(size_t size) {
     header = (header_t *)block;
     header->s.size = size;
     header->s.is_free = false;
+    header->s.prev = tail;
     header->s.next = NULL;
     if (head == NULL)
         head = header;
@@ -203,16 +206,11 @@ void myfree(void *ptr) {
         if (head == tail)
             head = tail = NULL;
         else {
-            header_t *tmp;
+            header_t *prev;
 
-            tmp = head;
-            while (tmp) {
-                if (tmp->s.next == tail) {
-                    tmp->s.next = NULL;
-                    tail = tmp;
-                }
-                tmp = tmp->s.next;
-            }
+            prev = header->s.prev;
+            prev->s.next = NULL;
+            tail = prev;
         }
         total_size = sizeof(header_t) + header->s.size;
         if (sbrk((intptr_t)0 - (intptr_t)total_size) == (void*)-1) {
