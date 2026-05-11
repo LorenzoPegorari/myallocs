@@ -30,6 +30,7 @@ cycle1 = []
 fragmentation = []
 cycle2 = []
 allocated = []
+used = []
 
 f1 = open('data1.txt','r')
 for row in f1:
@@ -41,24 +42,27 @@ for row in f2:
     row = row.split(',')
     cycle2.append(int(row[0]))
     allocated.append(int(row[1]))
+    used.append(int(row[2]))
 
-fig, ax1 = plt.subplots()
+fig, (ax1, ax2) = plt.subplots(2, layout="constrained")
 
+ax1.plot(cycle1, fragmentation, color='b', label='Memory fragmentation %')
 ax1.set_xlabel('Number of cycles', fontsize=12)
-ax1.set_ylabel('Fragmentation percentage', color='r', fontsize=12)
+ax1.set_ylabel('Fragmentation percentage', fontsize=12)
 ax1.set_ylim(0, 100)
-ax1.plot(cycle1, fragmentation, color='r', label='mymalloc()')
 ax1.set_title('Memory fragmentation', fontsize=20)
-ax1.grid(color='r', linestyle=':', linewidth=1)
-ax1.tick_params(axis='y', labelcolor='r')
-ax1.legend(loc='upper left')
+ax1.grid(linestyle=':', linewidth=1)
+ax1.tick_params(axis='y')
+ax1.legend()
 
-ax2 = ax1.twinx()
+ax2.plot(cycle2, allocated, color='r', label='Allocated memory')
+ax2.plot(cycle2, used, color='g', label='Used memory')
+ax2.set_xlabel('Number of cycles', fontsize=12)
+ax2.set_ylabel('Bytes', fontsize=12)
+ax2.set_ylim(0)
+ax2.set_title('Memory usage', fontsize=20)
+ax2.grid(linestyle=':', linewidth=1)
+ax2.tick_params(axis='y')
+ax2.legend()
 
-ax2.set_ylabel('Allocated bytes', color='b', fontsize=12)
-ax2.plot(cycle2, allocated, color='b', label='mymalloc()')
-ax2.tick_params(axis='y', labelcolor='b')
-ax2.legend(loc='upper right')
-
-fig.tight_layout()  # otherwise the right y-label is slightly clipped
 plt.show()

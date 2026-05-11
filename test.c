@@ -41,8 +41,9 @@
 #define REALLOC_CYCLES  1000
 
 
-void rand_unique_vals_in_range(int *array, int n, int m);
-void run_memory_data_test(FILE *file1, FILE *file2);
+static void rand_unique_vals_in_range(int *array, int n, int m);
+static double calc_fragmentation(size_t allocated, size_t used);
+static void run_memory_data_test(FILE *file1, FILE *file2);
 
 
 int main(void) {
@@ -78,7 +79,7 @@ int main(void) {
  * Given an `array`, fills it with `m` random UNIQUE values between 0 and `n`.
  * Knuth algorithm for random unique numbers.
  */
-void rand_unique_vals_in_range(int *array, int n, int m) {
+static void rand_unique_vals_in_range(int *array, int n, int m) {
     int in, im;
 
     for (in = im = 0; in < n && im < m; ++in) {
@@ -87,6 +88,16 @@ void rand_unique_vals_in_range(int *array, int n, int m) {
         if (rand() % rn < rm)
             array[im++] = in;
     }
+}
+
+
+/**
+ * Return current memory fragmentation percentage.
+ */
+static double calc_fragmentation(size_t allocated, size_t used) {
+    if (allocated == 0)
+        return 0;
+    return (100 - (((double)used) / ((double)allocated) * 100.0));
 }
 
 
@@ -106,7 +117,7 @@ void rand_unique_vals_in_range(int *array, int n, int m) {
  *   - print to stdout the <throughput>, calculated as:
  *         <number-of-allocs-and-frees>/<time-unit>
  */
-void run_memory_data_test(FILE *file1, FILE *file2) {
+static void run_memory_data_test(FILE *file1, FILE *file2) {
     void   *allocs[ALLOC_MAX];
     int     idx_to_realloc[REALLOC_MAX];
     size_t  tot_allocated;
@@ -129,9 +140,8 @@ void run_memory_data_test(FILE *file1, FILE *file2) {
     // Print initial cycle situation.
     tot_allocated = get_total_allocated();
     tot_used = get_total_used();
-    fprintf(file1, "0,%.2f\n",
-            100 - (((double)tot_used) / ((double)tot_allocated) * 100.0));
-    fprintf(file2, "0,%zu\n", tot_allocated);
+    fprintf(file1, "0,%.2f\n", calc_fragmentation(tot_allocated, tot_used));
+    fprintf(file2, "0,%zu,%zu\n", tot_allocated, tot_used);
 
     // Reallocate REALLOC_CYCLES times.
     for (int j = 0; j < REALLOC_CYCLES; ++j) {
@@ -159,9 +169,8 @@ void run_memory_data_test(FILE *file1, FILE *file2) {
         // Print current cycle situation.
         tot_allocated = get_total_allocated();
         tot_used = get_total_used();
-        fprintf(file1, "%d,%.2f\n", j + 1,
-                100 - (((double)tot_used) / ((double)tot_allocated) * 100.0));
-        fprintf(file2, "%d,%zu\n", j + 1, tot_allocated);
+        fprintf(file1, "%d,%.2f\n", j + 1, calc_fragmentation(tot_allocated, tot_used));
+        fprintf(file2, "%d,%zu,%zu\n", j + 1, tot_allocated, tot_used);
     }
 
     // Free all blocks of memory.
@@ -174,9 +183,8 @@ void run_memory_data_test(FILE *file1, FILE *file2) {
     // Print final cycle situation.
     tot_allocated = get_total_allocated();
     tot_used = get_total_used();
-    fprintf(file1, "%d,%.2f\n", REALLOC_CYCLES + 1,
-            100 - (((double)tot_used) / ((double)tot_allocated) * 100.0));
-    fprintf(file2, "%d,%zu\n", REALLOC_CYCLES + 1, tot_allocated);
+    fprintf(file1, "%d,%.2f\n", REALLOC_CYCLES + 1, calc_fragmentation(tot_allocated, tot_used));
+    fprintf(file2, "%d,%zu,%zu\n", REALLOC_CYCLES + 1, tot_allocated, tot_used);
 
     printf("Throughput: %.3f mymallocs and frees per clock_t\n",
            (double)(ALLOC_MAX * 2 + REALLOC_CYCLES * REALLOC_MAX * 2) / (double)tot_time);
