@@ -48,10 +48,10 @@ CFLAGS_TEST  := -D MYALLOCS_DEBUG -std=c99 -O2 -Wall -Wextra -pedantic
 LDFLAGS_TEST := -L./$(BUILD_DIR) -lc -l$(BIN_DEBUG:lib%.so=%) -Wl,-rpath,./$(BUILD_DIR)
 
 # NOTE:
-# It is possible to add either the CFLAGS or CFLAGS_DEBUG variable the
-# following flag:
-#     "-D MYALLOCS_BEST_FIT"
-# which will force the library functions to use the "BEST FIT" policy.
+# It is possible to add either to the CFLAGS or CFLAGS_DEBUG variable the
+# following flags:
+#   "-D MYALLOCS_BEST_FIT"     = use "BEST FIT" policy
+#   "-D MYALLOCS_FULL_DEALLOC" = deallocate as many free blocks as possible
 
 
 # ----------------------------------- GOALS -----------------------------------

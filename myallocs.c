@@ -185,34 +185,52 @@ void myfree(void *ptr) {
 
     /* `sbrk(0)` returns the current location of the program break. It cannot
        fail.
-       We use the program break to check if the block of memory to free is the
-       last memory block. If so, it can be safely deallocated using `sbrk()`.
-       Else, we simply mark that memory block as free. */
+       We use the program break to check if the block of memory to free is not
+       the last memory block. If so, we simply mark that memory block as free.
+       Else, it can be safely deallocated using `sbrk()`. */
     /* NOTE: its not possible to simply move back in the linked list of memory
        blocks and deallocate all the blocks that are marked as free that we
        encounter before the first not free block without checking, because we
        cannot know for certain that a third-party memory allocator didn't
        allocate memory in between the blocks in the linked list, meaning that
        we can't assume that the blocks are contiguous!
-       We would have to manually check for each block if it is at the program
-       break! This could be a possible future improvement!. */
+       We need to manually check for each block if it is at the program break,
+       and then free it. Let's give the user the possibility of enabling this
+       mechanism with the MYALLOCS_FULL_DEALLOC macro. */
     if (pthread_mutex_lock(&global_mymallocs_mutex) != 0)
         abort();
     header = (header_t *)ptr - 1;
     programbreak = sbrk((intptr_t)0);
-    if ((char *)ptr + header->s.size == programbreak) {
+    if ((char *)ptr + header->s.size != programbreak) {
+        header->s.is_free = true;
+        if (pthread_mutex_unlock(&global_mymallocs_mutex) != 0)
+            abort();
+        return;
+    }
+
+#ifdef MYALLOCS_FULL_DEALLOC
+    do {
         size_t total_size;
 
-        if (head == tail)
-            head = tail = NULL;
-        else {
-            header_t *prev;
-
-            prev = header->s.prev;
-            prev->s.next = NULL;
-            tail = prev;
-        }
         total_size = sizeof(header_t) + header->s.size;
+        if (head == tail) {
+            head = tail = NULL;
+            if (sbrk((intptr_t)0 - (intptr_t)total_size) == (void*)-1) {
+                // Syscall `sbrk` returned an error!
+                pthread_mutex_unlock(&global_mymallocs_mutex);
+                abort();
+            }
+#ifdef MYALLOCS_DEBUG
+            total_allocated -= total_size;
+#endif
+            if (pthread_mutex_unlock(&global_mymallocs_mutex) != 0)
+                abort();
+            return;
+        }
+
+        header = header->s.prev;
+        header->s.next = NULL;
+        tail = header;
         if (sbrk((intptr_t)0 - (intptr_t)total_size) == (void*)-1) {
             // Syscall `sbrk` returned an error!
             pthread_mutex_unlock(&global_mymallocs_mutex);
@@ -221,11 +239,31 @@ void myfree(void *ptr) {
 #ifdef MYALLOCS_DEBUG
         total_allocated -= total_size;
 #endif
-        if (pthread_mutex_unlock(&global_mymallocs_mutex) != 0)
-            abort();
-        return;
+
+        programbreak = sbrk((intptr_t)0);
+    } while (header->s.is_free == true && (char *)(header + 1) + header->s.size == programbreak);
+#else
+    size_t total_size;
+
+    if (head == tail)
+        head = tail = NULL;
+    else {
+        header_t *prev;
+
+        prev = header->s.prev;
+        prev->s.next = NULL;
+        tail = prev;
     }
-    header->s.is_free = true;
+    total_size = sizeof(header_t) + header->s.size;
+    if (sbrk((intptr_t)0 - (intptr_t)total_size) == (void*)-1) {
+        // Syscall `sbrk` returned an error!
+        pthread_mutex_unlock(&global_mymallocs_mutex);
+        abort();
+    }
+#ifdef MYALLOCS_DEBUG
+    total_allocated -= total_size;
+#endif
+#endif
     if (pthread_mutex_unlock(&global_mymallocs_mutex) != 0)
         abort();
 }
