@@ -67,7 +67,8 @@ make test && build/test_myallocs && python3 plot.py
 ### Extra
 
 Inside the `Makefile`, it is described how it is possible to modify how the library functions will work by defining certain macros. The currently supported macros are the following:
-- `MYALLOCS_BEST_FIT` = force the library functions to use the "BEST FIT" policy (instead of the standard "FIRST FIT" policy).
+- `MYALLOCS_BEST_FIT` = force the library functions to use the "BEST FIT" policy (instead of the standard "FIRST FIT" policy)
+- `MYALLOCS_FULL_DEALLOC` = force the library functions to try to deallocate as much free memory as possible
 
 ## Resources
 
