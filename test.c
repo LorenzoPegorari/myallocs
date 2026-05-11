@@ -186,6 +186,6 @@ static void run_memory_data_test(FILE *file1, FILE *file2) {
     fprintf(file1, "%d,%.2f\n", REALLOC_CYCLES + 1, calc_fragmentation(tot_allocated, tot_used));
     fprintf(file2, "%d,%zu,%zu\n", REALLOC_CYCLES + 1, tot_allocated, tot_used);
 
-    printf("Throughput: %.3f mymallocs and frees per clock_t\n",
+    printf("Throughput: %.3f mymallocs and myfrees per clock_t\n",
            (double)(ALLOC_MAX * 2 + REALLOC_CYCLES * REALLOC_MAX * 2) / (double)tot_time);
 }
