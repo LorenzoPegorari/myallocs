@@ -46,7 +46,7 @@ make test
 
 The shared library `libmyallocs_debug.so` (as described in the section [Debug](#debug)) and the executable `test_myallocs` should be present inside the created directory `build/`.
 
-Then, run the `test_myallocs`. This should print on `stdout` the *throughput*, and create (inside the working directory) 2 files: `data1.txt` and `data2.txt`, containing data regarding memory usage and fragmentation. It is possible to tweak how the test works. To do so, take a look inside the `test.c` file! 
+Then, run the `test_myallocs`. This should print on `stdout` the *throughput*, and create (inside the working directory) 2 files: `data1.txt` and `data2.txt`, containing data regarding memory usage and fragmentation. It is possible to tweak how the test works. To do so, take a look inside the `test.c` file!
 
 To visualize the data of these 2 files, run the `plot.py` script (which will look for the `data1.txt` and `data2.txt` files, and create a plot using `matplotlib`) with the following command:
 
@@ -75,5 +75,8 @@ Inside the `Makefile`, it is described how it is possible to modify how the libr
 The resources that I used to create this software are the following:
 
 - [arjunsreedharan.org - Memory Allocators 101 - Write a simple memory allocator](https://arjunsreedharan.org/post/148675821737/memory-allocators-101-write-a-simple-memory)
+- [Medium - Level Up Coding - Malloc is not magic: Implementing my own memory allocator](https://levelup.gitconnected.com/malloc-is-not-magic-implementing-my-own-memory-allocator-e0354e914402)
+- [gandhijay - Building a Simple Memory Allocator Using sbrk in C (Malloking Pt. 1)](https://www.gandhijay.com/posts/malloking-one/)
+- [gandhijay - Adding Splitting and Coalescing in Basic Allocator in C (Malloking Pt. 2)](https://www.gandhijay.com/posts/malloking-two/)
 - [YouTube - cpp4arduino - What is heap fragmentation?](https://www.youtube.com/watch?v=_G4HJDQjeP8)
-- [YouTube - Luis Ceze - Memory Allocation, Video 1: Introduction](https://www.youtube.com/watch?v=RSuZhdwvNmA)
+- [YouTube - Luis Ceze - Memory Allocation Videos](https://www.youtube.com/watch?v=RSuZhdwvNmA)

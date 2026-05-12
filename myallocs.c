@@ -42,6 +42,7 @@
 
 
 /*
+ * GENERAL IDEA:
  * The idea is to add to every allocated memory block an header that contains:
  *   - the size of the block
  *   - a flag that indicates if the block is marked as free
@@ -51,6 +52,22 @@
  * The header is kept completely hidden from the caller.
  *
  * The header is wrapped inside a `union`, forcing it to be aligned to `ALIGN`.
+ *
+ * The maximum size of memory that can be requestd with on `mymalloc()` (or
+ * similar functions) call is:
+ *     (SIZE_MAX / 2) - sizeof(header_t)
+ */
+
+/*
+ * LIMITATIONS:
+ * - This simple implementation doesn't do splitting of big memory blocks.
+ * - This simple implementation doesn't do coalescing of free memory blocks.
+ * - The memory blocks don't have any "magic number" (or something similar).
+ *   This means that we are not checking if, for example, the passed `ptr` to
+ *   `myfree()`.
+ * - We allocating each memory block by itself when it is necessary. A better
+ *   solution would be to allocate in pages (of maybe 4KB, a common page size
+ *   in Linux systems).
  */
 
 
